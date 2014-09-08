@@ -1,5 +1,5 @@
 require 'gosu'
-require 'byebug'
+#require 'byebug'
 
 module Direction
   LEFT = :left
@@ -46,7 +46,7 @@ class Game < Gosu::Window
       @snake.grow @fruits
       
       if rand(100) < 4 and @fruits.size < MAX_FRUITS
-        @fruits << Fruit.new(self)
+        @fruits << Fruit.new(self, rand(100) < 7) # 7% change to get a special fruit
       end
     rescue Snake::GameOverException
       @game_over = true
@@ -79,12 +79,13 @@ class Snake
     @head = SnakeHead.new @window
     @body = []
 
-    30.times { new_body }
+ #   30.times { new_body }
     
     @direction = Direction::RIGHT
     @last_direction = Direction::RIGHT
     
     @gotcha = Gosu::Sample.new @window, 'media/smb_coin.wav'
+    @super = Gosu::Sample.new @window, 'media/smb_1-up.wav'
   end  
    
   def size
@@ -94,8 +95,13 @@ class Snake
   def grow(fruits)
     fruits.reject! do |fruit| 
       if Gosu::distance(@head.cur_x, @head.cur_y, fruit.x, fruit.y) < 5
-        @gotcha.play
-        new_body
+        if fruit.special?
+          @super.play
+          3.times { new_body }
+        else
+          @gotcha.play
+          new_body
+        end
       end
     end
   end
@@ -242,10 +248,16 @@ end
 class Fruit
   attr_reader :x, :y
   
-  def initialize(window)
-    @image = Gosu::Image.new window, 'media/fruit.png', false
+  def initialize(window, special)
+    @special = special
+    image_file = @special ? 'media/chery.png' : 'media/fruit.png'
+    @image = Gosu::Image.new window, image_file, false
     @x = rand * window.width
     @y = rand * window.height
+  end
+  
+  def special?
+    @special
   end
   
   def draw
