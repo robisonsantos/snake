@@ -27,6 +27,8 @@ class Game < Gosu::Window
     @font = Gosu::Font.new self, Gosu::default_font_name, 20 
     
     @fruits = []  
+    
+    @end_game = Gosu::Sample.new self, 'media/smb_gameover.wav'
   end
   
   def button_down(id)
@@ -48,12 +50,16 @@ class Game < Gosu::Window
       end
     rescue Snake::GameOverException
       @game_over = true
+      unless @playing
+        @end_game.play
+        @playing = true
+      end
     end
   end
   
   def draw
     if @game_over
-      @font.draw "GAME OVER - Score: #{@snake.size}", width / 2 - 60, height / 2, ZOrder::UI, 1, 1, 0xffffff00
+      @font.draw "GAME OVER - Score: #{@snake.size}", width / 2 - 70, height / 2, ZOrder::UI, 1, 1, 0xffffff00
     else
       @background_image.draw 0, 0, ZOrder::Background
       @snake.draw
@@ -77,6 +83,8 @@ class Snake
     
     @direction = Direction::RIGHT
     @last_direction = Direction::RIGHT
+    
+    @gotcha = Gosu::Sample.new @window, 'media/smb_coin.wav'
   end  
    
   def size
@@ -86,6 +94,7 @@ class Snake
   def grow(fruits)
     fruits.reject! do |fruit| 
       if Gosu::distance(@head.cur_x, @head.cur_y, fruit.x, fruit.y) < 5
+        @gotcha.play
         new_body
       end
     end
@@ -99,7 +108,8 @@ class Snake
     raise GameOverException.new if @head.cur_x > @window.width  ||
                                    @head.cur_y > @window.height ||
                                    @head.cur_x < 0 ||
-                                   @head.cur_y < 0
+                                   @head.cur_y < 0 ||
+                                   @head.colision?(@body)
   
     if @last_direction != @direction
       point_of_change = [[@head.cur_x, @head.cur_y], @direction]
@@ -127,6 +137,7 @@ end
 class SnakeLimb
   attr_reader :direction, :last_x, :last_y, :cur_x, :cur_y, :changes
   attr_writer :step
+ 
   def initialize(window)
     @window = window
     @image = Gosu::Image.new @window, 'media/snake.png', false
@@ -156,29 +167,23 @@ class SnakeHead < SnakeLimb
   end
   
   def update
-
-     @last_x = @cur_x
-     @last_y = @cur_y
-     
-     # goes right
-     if @direction == Direction::RIGHT
-      @cur_x += @@step
-     end
-     
-     # goes up
-     if @direction == Direction::UP
-      @cur_y -= @@step
-     end
-     
-     # goes left
-     if @direction == Direction::LEFT
-      @cur_x -= @@step
-     end     
-     
-     # goes down
-     if @direction == Direction::DOWN
-      @cur_y += @@step
-     end
+    @last_x = @cur_x
+    @last_y = @cur_y
+   
+    case @direction
+      when Direction::RIGHT
+        @cur_x += @@step
+      when Direction::UP
+        @cur_y -= @@step
+      when Direction::LEFT
+       @cur_x -= @@step
+      when Direction::DOWN
+       @cur_y += @@step
+    end
+  end
+  
+  def colision?(body)
+    body.any? { |b| Gosu::distance(@cur_x, @cur_y, b.cur_x, b.cur_y) < 5 }
   end
 end
 
@@ -187,19 +192,20 @@ class SnakeBody < SnakeLimb
     super window 
     @plimb = plimb
 
-    # add the new piece in the right location
-    if plimb.direction == Direction::RIGHT
-      @cur_x = @plimb.cur_x - @image.width - 1
-      @cur_y = @plimb.cur_y
-    elsif plimb.direction == Direction::LEFT
-      @cur_x = @plimb.cur_x + @image.width + 1
-      @cur_y = @plimb.cur_y
-    elsif plimb.direction == Direction::UP
-      @cur_x = @plimb.cur_x
-      @cur_y = @plimb.cur_y + @image.height + 1
-    elsif plimb.direction == Direction::DOWN
-      @cur_x = @plimb.cur_x
-      @cur_y = @plimb.cur_y - @image.height - 1
+    case plimb.direction
+      # add the new piece in the right location
+      when  Direction::RIGHT
+        @cur_x = @plimb.cur_x - @image.width - 1
+        @cur_y = @plimb.cur_y
+      when  Direction::LEFT
+        @cur_x = @plimb.cur_x + @image.width + 1
+        @cur_y = @plimb.cur_y
+      when  Direction::UP
+        @cur_x = @plimb.cur_x
+        @cur_y = @plimb.cur_y + @image.height + 1
+      when  Direction::DOWN
+        @cur_x = @plimb.cur_x
+        @cur_y = @plimb.cur_y - @image.height - 1
     end
 
     @changes = plimb.changes.dup rescue []
@@ -214,25 +220,16 @@ class SnakeBody < SnakeLimb
    
     @last_x = @cur_x
     @last_y = @cur_y
-    
-    # goes right
-    if @direction == Direction::RIGHT
-      @cur_x += @@step
-    end
-    
-    # goes up
-    if @direction == Direction::UP
-      @cur_y -= @@step
-    end
-    
-    # goes left
-    if @direction == Direction::LEFT
-      @cur_x -= @@step
-    end
-    
-    # goes down
-    if @direction == Direction::DOWN
-      @cur_y += @@step
+
+    case @direction
+      when Direction::RIGHT
+        @cur_x += @@step
+      when Direction::UP
+        @cur_y -= @@step
+      when Direction::LEFT
+        @cur_x -= @@step
+      when Direction::DOWN
+        @cur_y += @@step
     end
 
     if @changes.first && @changes.first.first == [@cur_x, @cur_y]
