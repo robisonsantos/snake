@@ -27,7 +27,7 @@ class Snake
         if fruit.is_a? Fruit::SuperHalfFruit
           @body.pop(@body.size / 2)
         elsif fruit.is_a? Fruit::SuperDoubleFruit
-          (@body.size / 2).times { new_body }
+          @body.size.times { new_body }
         else
           fruit.score.times { new_body }
         end

@@ -29,6 +29,8 @@ class Game < Gosu::Window
     begin
       if @game_over
         if button_down? Gosu::KbReturn
+          # If the game is restarted, we need to update the cached high_score variable
+          @high_score = @snake.score if @snake.score > high_score
           @snake = Snake.new self
           @game_over = false
         end
@@ -60,7 +62,6 @@ class Game < Gosu::Window
       @font.draw "GAME OVER", width / 2 - 70, height / 2 - 25, ZOrder::UI, 1, 1, 0xffffff00
       @font.draw "Your Score: #{@snake.score}", width / 2 - 70, height / 2 , ZOrder::UI, 1, 1, 0xffffff00
       @font.draw "High Score: #{high_score}", width / 2 - 70, height / 2 + 25, ZOrder::UI, 1, 1, 0xffffff00
-
     else
       @background_image.draw 0, 0, ZOrder::Background
       @snake.draw
@@ -79,7 +80,7 @@ class Game < Gosu::Window
   end
 
   def save_score(score)
-    File.open('.high_score', 'w').print(score)
+    File.open('.high_score', 'w'){ |f| f.print score }
   end
 end
 
