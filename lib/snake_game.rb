@@ -52,13 +52,30 @@ class Game < Gosu::Window
   
   def draw
     if @game_over
-      @font.draw "GAME OVER - Score: #{@snake.score}", width / 2 - 70, height / 2, ZOrder::UI, 1, 1, 0xffffff00
+      save_score @snake.score if @snake.score > high_score
+      @font.draw "GAME OVER", width / 2 - 70, height / 2 - 25, ZOrder::UI, 1, 1, 0xffffff00
+      @font.draw "Score: #{@snake.score}", width / 2 - 70, height / 2 , ZOrder::UI, 1, 1, 0xffffff00
+      @font.draw "High Score: #{high_score}", width / 2 - 70, height / 2 + 25, ZOrder::UI, 1, 1, 0xffffff00
+
     else
       @background_image.draw 0, 0, ZOrder::Background
       @snake.draw
       @fruits.each(&:draw)
       @font.draw "Score: #{@snake.score}", 10, 10, ZOrder::UI, 1, 1, 0xffffff00
+      @font.draw "High Score: #{high_score}", 10, 35, ZOrder::UI, 1, 1, 0xffffff00
     end
+  end
+
+  def high_score
+    if File.exists? '.high_score'
+      @high_score ||= File.open('.high_score', 'r').read.to_i
+    else
+      0
+    end
+  end
+
+  def save_score(score)
+    File.open('.high_score', 'w').print(score)
   end
 end
 

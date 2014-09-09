@@ -3,13 +3,13 @@ require_relative 'consts.rb'
 
 module Fruit
   def self.get_instance(window)
-    # 10% of getting a 2x fruit
-    # 10% of getting a /2 fruit
-    # 20% of getting a special fruit
-    # 60% of getting a normal fruit
+    # 12% chance of getting a 2x fruit
+    #  8% chance of getting a /2 fruit
+    # 20% chance of getting a special fruit
+    # 60% chance of getting a normal fruit
     chance = rand(100)
-    return SuperDoubleFruit.new(window, 7500) if (0...10).member? chance
-    return SuperHalfFruit.new(window, 7500) if (10...20).member? chance
+    return SuperDoubleFruit.new(window, 7500) if (0...12).member? chance
+    return SuperHalfFruit.new(window, 7500) if (12...20).member? chance
     return SpecialFruit.new(window) if (20...40).member? chance
 
     NormalFruit.new(window)
