@@ -24,24 +24,32 @@ class Game < Gosu::Window
   end
   
   def button_down(id)
-    close if id == Gosu::KbEscape
-  end
-  
-  def update
-    begin
-      if @game_over
-        if button_down? Gosu::KbReturn
+    case id
+      when Gosu::KbReturn
+        if @game_over
           # If the game is restarted, we need to update the cached high_score variable
           @high_score = @snake.score if @snake.score > high_score
           @snake = Snake.new self
           @game_over = false
         end
-      else
-        @snake.direction = Direction::LEFT if button_down? Gosu::KbLeft
-        @snake.direction = Direction::RIGHT if button_down? Gosu::KbRight
-        @snake.direction = Direction::UP if button_down? Gosu::KbUp
-        @snake.direction = Direction::DOWN if button_down? Gosu::KbDown
-        
+      when Gosu::KbEscape
+        close
+      when Gosu::KbP
+        @paused = !@paused
+      when Gosu::KbLeft
+        @snake.direction = Direction::LEFT unless @paused or @game_over
+      when Gosu::KbRight
+        @snake.direction = Direction::RIGHT unless @paused or @game_over
+      when Gosu::KbUp
+        @snake.direction = Direction::UP unless @paused or @game_over
+      when Gosu::KbDown
+        @snake.direction = Direction::DOWN unless @paused or @game_over
+    end
+  end
+  
+  def update
+    begin
+      unless @paused or @game_over
         @snake.update
         @snake.grow @fruits
        
@@ -64,6 +72,8 @@ class Game < Gosu::Window
       @font.draw "GAME OVER", width / 2 - 70, height / 2 - 25, ZOrder::UI, 1, 1, 0xffffff00
       @font.draw "Your Score: #{@snake.score}", width / 2 - 70, height / 2 , ZOrder::UI, 1, 1, 0xffffff00
       @font.draw "High Score: #{high_score}", width / 2 - 70, height / 2 + 25, ZOrder::UI, 1, 1, 0xffffff00
+    elsif @paused
+      @font.draw "PAUSED", width / 2 - 30, height / 2, ZOrder::UI, 1, 1, 0xffffff00
     else
       @background_image.draw 0, 0, ZOrder::Background
       @snake.draw
