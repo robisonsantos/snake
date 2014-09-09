@@ -27,26 +27,30 @@ class Game < Gosu::Window
   
   def update
     begin
-      @snake.direction = Direction::LEFT if button_down? Gosu::KbLeft
-      @snake.direction = Direction::RIGHT if button_down? Gosu::KbRight
-      @snake.direction = Direction::UP if button_down? Gosu::KbUp
-      @snake.direction = Direction::DOWN if button_down? Gosu::KbDown
-      
-      @snake.update
-      @snake.grow @fruits
-     
-      # remove expired fruits
-      @fruits.reject! { |fruit| fruit.expired? }
-      
-      if rand(100) < 4 and @fruits.size < MAX_FRUITS
-        @fruits << Fruit.get_instance(self)
+      if @game_over
+        if button_down? Gosu::KbReturn
+          @snake = Snake.new self
+          @game_over = false
+        end
+      else
+        @snake.direction = Direction::LEFT if button_down? Gosu::KbLeft
+        @snake.direction = Direction::RIGHT if button_down? Gosu::KbRight
+        @snake.direction = Direction::UP if button_down? Gosu::KbUp
+        @snake.direction = Direction::DOWN if button_down? Gosu::KbDown
+        
+        @snake.update
+        @snake.grow @fruits
+       
+        # remove expired fruits
+        @fruits.reject! { |fruit| fruit.expired? }
+        
+        if rand(100) < 4 and @fruits.size < MAX_FRUITS
+          @fruits << Fruit.get_instance(self)
+        end
       end
     rescue Snake::GameOverException
       @game_over = true
-      unless @playing
-        @end_game.play
-        @playing = true
-      end
+      @end_game.play
     end
   end
   
@@ -54,14 +58,14 @@ class Game < Gosu::Window
     if @game_over
       save_score @snake.score if @snake.score > high_score
       @font.draw "GAME OVER", width / 2 - 70, height / 2 - 25, ZOrder::UI, 1, 1, 0xffffff00
-      @font.draw "Score: #{@snake.score}", width / 2 - 70, height / 2 , ZOrder::UI, 1, 1, 0xffffff00
+      @font.draw "Your Score: #{@snake.score}", width / 2 - 70, height / 2 , ZOrder::UI, 1, 1, 0xffffff00
       @font.draw "High Score: #{high_score}", width / 2 - 70, height / 2 + 25, ZOrder::UI, 1, 1, 0xffffff00
 
     else
       @background_image.draw 0, 0, ZOrder::Background
       @snake.draw
       @fruits.each(&:draw)
-      @font.draw "Score: #{@snake.score}", 10, 10, ZOrder::UI, 1, 1, 0xffffff00
+      @font.draw "Your Score: #{@snake.score}", 10, 10, ZOrder::UI, 1, 1, 0xffffff00
       @font.draw "High Score: #{high_score}", 10, 35, ZOrder::UI, 1, 1, 0xffffff00
     end
   end
