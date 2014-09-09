@@ -12,4 +12,8 @@ module ZOrder
   Background, Fruit, Snake, UI = *0..3
 end
 
-
+module Media
+  def media_path(media)
+    File.join(File.dirname(__FILE__), '../media', media)
+  end
+end

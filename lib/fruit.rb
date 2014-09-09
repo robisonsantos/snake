@@ -16,6 +16,8 @@ module Fruit
   end
 
   class AbstractFruit
+    include Media
+
     def initialize(window)
       @x = rand * window.width
       @y = rand * window.height
@@ -41,11 +43,11 @@ module Fruit
 
     def initialize(window, timeout)
       super(window)
-      @image = Gosu::Image.new window, '../media/double_fruit.png', false
+      @image = Gosu::Image.new window, media_path('double_fruit.png'), false
       @score = 5
       @created_at = Gosu::milliseconds
       @timeout = timeout
-      @sound = Gosu::Sample.new window, '../media/smb_vine.wav'
+      @sound = Gosu::Sample.new window, media_path('smb_vine.wav')
     end
     
     def expired?
@@ -58,11 +60,11 @@ module Fruit
     
     def initialize(window, timeout)
       super(window)
-      @image = Gosu::Image.new window, '../media/half_fruit.png', false
+      @image = Gosu::Image.new window, media_path('half_fruit.png'), false
       @score = 5
       @created_at = Gosu::milliseconds
       @timeout = timeout
-      @sound = Gosu::Sample.new window, '../media/smb_pipe.wav'
+      @sound = Gosu::Sample.new window, media_path('smb_pipe.wav')
     end
 
     def expired?
@@ -75,9 +77,9 @@ module Fruit
     
     def initialize(window)
       super
-      @image = Gosu::Image.new window, '../media/chery.png', false
+      @image = Gosu::Image.new window, media_path('chery.png'), false
       @score = 3
-      @sound = Gosu::Sample.new window, '../media/smb_1-up.wav'
+      @sound = Gosu::Sample.new window, media_path('smb_1-up.wav')
     end
   end
 
@@ -86,9 +88,9 @@ module Fruit
 
     def initialize(window)
       super
-      @image = Gosu::Image.new window, '../media/fruit.png', false
+      @image = Gosu::Image.new window, media_path('fruit.png'), false
       @score = 1
-      @sound = Gosu::Sample.new window, '../media/smb_coin.wav'
+      @sound = Gosu::Sample.new window, media_path('smb_coin.wav')
     end
   end
 end

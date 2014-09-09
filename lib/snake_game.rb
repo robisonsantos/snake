@@ -5,20 +5,22 @@ require_relative 'fruit.rb'
 
 # Game window
 class Game < Gosu::Window
+  include Media
+
   MAX_FRUITS = 1
   
   def initialize width=800, height=600, fullscreen=false
     super
     self.caption = "Snake Game"
 
-    @background_image = Gosu::Image.new self, "../media/space.png", true
+    @background_image = Gosu::Image.new self, media_path('space.png'), true
     @snake = Snake.new self 
     
     @font = Gosu::Font.new self, Gosu::default_font_name, 20 
     
     @fruits = []  
     
-    @end_game = Gosu::Sample.new self, '../media/smb_mariodie.wav'
+    @end_game = Gosu::Sample.new self, media_path('smb_mariodie.wav')
   end
   
   def button_down(id)
@@ -72,15 +74,16 @@ class Game < Gosu::Window
   end
 
   def high_score
-    if File.exists? '.high_score'
-      @high_score ||= File.open('.high_score', 'r').read.to_i
+    high_score_media = media_path('.high_score')
+    if File.exists? high_score_media
+      @high_score ||= File.open(high_score_media, 'r').read.to_i
     else
       0
     end
   end
 
   def save_score(score)
-    File.open('.high_score', 'w'){ |f| f.print score }
+    File.open(media_path('.high_score'), 'w'){ |f| f.print score }
   end
 end
 

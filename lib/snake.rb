@@ -70,13 +70,14 @@ class Snake
 end
 
 class SnakeLimb
+  include Media
   attr_reader :direction, :last_x, :last_y, 
               :cur_x, :cur_y, :changes
   attr_writer :step
  
   def initialize(window)
     @window = window
-    @image = Gosu::Image.new @window, '../media/snake.png', false
+    @image = Gosu::Image.new @window, media_path('snake.png'), false
     @direction = Direction::RIGHT
     # position
     @cur_x, @cur_y, @last_x, @last_y = 0,0,0,0
@@ -97,7 +98,7 @@ class SnakeHead < SnakeLimb
 
   def initialize(window)
     super
-    @image = Gosu::Image.new @window, '../media/head.png', false
+    @image = Gosu::Image.new @window, media_path('head.png'), false
     @cur_x = window.width / 2
     @cur_y = window.height / 2
   end

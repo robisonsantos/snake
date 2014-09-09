@@ -1,4 +1,6 @@
-require_relative '../lib/snake_game.rb'
+#!/usr/bin/env ruby
+
+require 'snake_game.rb'
 
 ## Main
 # Params are: Width, Height, Fullscreen
