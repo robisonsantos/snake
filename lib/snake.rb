@@ -34,6 +34,10 @@ class Snake
       end
     end
   end
+  
+  def size
+    @body.size
+  end
 
   def new_body
     @body << SnakeBody.new(@body.last || @head, @window)

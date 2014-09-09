@@ -2,14 +2,14 @@ require 'gosu'
 require_relative 'consts.rb'
 
 module Fruit
-  def self.get_instance(window)
+  def self.get_instance(window, snake)
     # 12% chance of getting a 2x fruit
     #  8% chance of getting a /2 fruit
     # 20% chance of getting a special fruit
     # 60% chance of getting a normal fruit
     chance = rand(100)
-    return SuperDoubleFruit.new(window, 7500) if (0...12).member? chance
-    return SuperHalfFruit.new(window, 7500) if (12...20).member? chance
+    return SuperDoubleFruit.new(window, snake, 7500) if (0...12).member? chance
+    return SuperHalfFruit.new(window, snake, 7500) if (12...20).member? chance
     return SpecialFruit.new(window) if (20...40).member? chance
 
     NormalFruit.new(window)
@@ -41,10 +41,10 @@ module Fruit
   class SuperDoubleFruit < AbstractFruit
     attr_reader :x, :y, :score
 
-    def initialize(window, timeout)
+    def initialize(window, snake, timeout)
       super(window)
       @image = Gosu::Image.new window, media_path('double_fruit.png'), false
-      @score = 5
+      @score = snake.size
       @created_at = Gosu::milliseconds
       @timeout = timeout
       @sound = Gosu::Sample.new window, media_path('smb_vine.wav')
@@ -58,10 +58,10 @@ module Fruit
   class SuperHalfFruit < AbstractFruit
     attr_reader :x, :y, :score
     
-    def initialize(window, timeout)
+    def initialize(window, snake, timeout)
       super(window)
       @image = Gosu::Image.new window, media_path('half_fruit.png'), false
-      @score = 5
+      @score = snake.size / 2
       @created_at = Gosu::milliseconds
       @timeout = timeout
       @sound = Gosu::Sample.new window, media_path('smb_pipe.wav')

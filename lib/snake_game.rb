@@ -56,8 +56,8 @@ class Game < Gosu::Window
         # remove expired fruits
         @fruits.reject! { |fruit| fruit.expired? }
         
-        if rand(100) < 4 and @fruits.size < MAX_FRUITS
-          @fruits << Fruit.get_instance(self)
+        if @fruits.size < MAX_FRUITS
+          @fruits << Fruit.get_instance(self, @snake)
         end
       end
     rescue Snake::GameOverException
