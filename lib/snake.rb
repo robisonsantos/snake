@@ -1,76 +1,10 @@
 require 'gosu'
-#require 'byebug'
-
-module Direction
-  LEFT = :left
-  RIGHT = :right
-  UP = :up
-  DOWN = :down
-end
-
-module ZOrder
-  Background, Fruit, Snake, UI = *0..3
-end
-
-###
-# Game window
-class Game < Gosu::Window
-  MAX_FRUITS = 1
-  
-  def initialize width=800, height=600, fullscreen=false
-    super
-    self.caption = "Snake Game"
-
-    @background_image = Gosu::Image.new self, "media/space.png", true
-    @snake = Snake.new self 
-    
-    @font = Gosu::Font.new self, Gosu::default_font_name, 20 
-    
-    @fruits = []  
-    
-    @end_game = Gosu::Sample.new self, 'media/smb_gameover.wav'
-  end
-  
-  def button_down(id)
-    close if id == Gosu::KbEscape
-  end
-  
-  def update
-    begin
-      @snake.direction = Direction::LEFT if button_down? Gosu::KbLeft
-      @snake.direction = Direction::RIGHT if button_down? Gosu::KbRight
-      @snake.direction = Direction::UP if button_down? Gosu::KbUp
-      @snake.direction = Direction::DOWN if button_down? Gosu::KbDown
-      
-      @snake.update
-      @snake.grow @fruits
-      
-      if rand(100) < 4 and @fruits.size < MAX_FRUITS
-        @fruits << Fruit.new(self, rand(100) < 7) # 7% change to get a special fruit
-      end
-    rescue Snake::GameOverException
-      @game_over = true
-      unless @playing
-        @end_game.play
-        @playing = true
-      end
-    end
-  end
-  
-  def draw
-    if @game_over
-      @font.draw "GAME OVER - Score: #{@snake.size}", width / 2 - 70, height / 2, ZOrder::UI, 1, 1, 0xffffff00
-    else
-      @background_image.draw 0, 0, ZOrder::Background
-      @snake.draw
-      @fruits.each(&:draw)
-      @font.draw "Score: #{@snake.size}", 10, 10, ZOrder::UI, 1, 1, 0xffffff00
-    end
-  end
-end
+require_relative 'consts.rb'
+require_relative 'fruit.rb'
 
 class Snake
   attr_writer :direction
+  attr_reader :score
 
   class GameOverException < Exception; end
 
@@ -79,33 +13,28 @@ class Snake
     @head = SnakeHead.new @window
     @body = []
 
- #   30.times { new_body }
-    
     @direction = Direction::RIGHT
     @last_direction = Direction::RIGHT
-    
-    @gotcha = Gosu::Sample.new @window, 'media/smb_coin.wav'
-    @super = Gosu::Sample.new @window, 'media/smb_1-up.wav'
+    @score = 0
   end  
    
-  def size
-    @body.size
-  end
-  
   def grow(fruits)
     fruits.reject! do |fruit| 
-      if Gosu::distance(@head.cur_x, @head.cur_y, fruit.x, fruit.y) < 5
-        if fruit.special?
-          @super.play
-          3.times { new_body }
+      if Gosu::distance(@head.cur_x, @head.cur_y, fruit.x, fruit.y) < 10
+        fruit.play
+        @score += fruit.score
+
+        if fruit.is_a? Fruit::SuperHalfFruit
+          @body.pop(@body.size / 2)
+        elsif fruit.is_a? Fruit::SuperDoubleFruit
+          (@body.size / 2).times { new_body }
         else
-          @gotcha.play
-          new_body
+          fruit.score.times { new_body }
         end
       end
     end
   end
-  
+
   def new_body
     @body << SnakeBody.new(@body.last || @head, @window)
   end
@@ -141,12 +70,13 @@ class Snake
 end
 
 class SnakeLimb
-  attr_reader :direction, :last_x, :last_y, :cur_x, :cur_y, :changes
+  attr_reader :direction, :last_x, :last_y, 
+              :cur_x, :cur_y, :changes
   attr_writer :step
  
   def initialize(window)
     @window = window
-    @image = Gosu::Image.new @window, 'media/snake.png', false
+    @image = Gosu::Image.new @window, '../media/snake.png', false
     @direction = Direction::RIGHT
     # position
     @cur_x, @cur_y, @last_x, @last_y = 0,0,0,0
@@ -167,7 +97,7 @@ class SnakeHead < SnakeLimb
 
   def initialize(window)
     super
-    @image = Gosu::Image.new @window, 'media/head.png', false
+    @image = Gosu::Image.new @window, '../media/head.png', false
     @cur_x = window.width / 2
     @cur_y = window.height / 2
   end
@@ -244,30 +174,3 @@ class SnakeBody < SnakeLimb
     end
   end
 end
-
-class Fruit
-  attr_reader :x, :y
-  
-  def initialize(window, special)
-    @special = special
-    image_file = @special ? 'media/chery.png' : 'media/fruit.png'
-    @image = Gosu::Image.new window, image_file, false
-    @x = rand * window.width
-    @y = rand * window.height
-  end
-  
-  def special?
-    @special
-  end
-  
-  def draw
-    @image.draw @x - @image.width / 2.0, 
-                @y - @image.height / 2.0,
-                ZOrder::Fruit
-  end
-end
-
-
-## Main
-# Params are: Width, Height, Fullscreen
-Game.new(640, 480, ARGV.first == "full").show
